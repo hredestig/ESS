@@ -629,7 +629,7 @@ list of strings."
               (progn
                 (ess-roxy-match-paren)
                 (point))))))
-      (setq args-txt (replace-regexp-in-string "#+.*\n" "" args-txt))
+      (setq args-txt (replace-regexp-in-string "#+[^\"']*\n" "" args-txt))
       (setq args-txt (replace-regexp-in-string "([^)]+)" "" args-txt))
       (setq args-txt (replace-regexp-in-string "=[^,]+" "" args-txt))
       (setq args-txt (replace-regexp-in-string "[ \t\n]+" "" args-txt))

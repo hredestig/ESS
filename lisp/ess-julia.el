@@ -23,9 +23,8 @@
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 ;;
-;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; A copy of the GNU General Public License is available at
+;; http://www.r-project.org/Licenses/
 ;;
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -40,6 +39,8 @@
 
 (require 'compile); for compilation-* below
 (require 'ess-utils)
+(eval-when-compile
+  (require 'cl)); in Emacs <= 23.x for (mapcan .)
 
 (autoload 'inferior-ess "ess-inf" "Run an ESS process.")
 (autoload 'ess-mode     "ess-mode" "Edit an ESS process.")
@@ -116,7 +117,7 @@
     (list julia-char-regex 2 'font-lock-string-face)
     (list julia-forloop-in-regex 1 'font-lock-keyword-face)
     ;; (cons ess-subset-regexp 'font-lock-constant-face)
-    (cons "\\(\\sw+\\) ?(" '(1 font-lock-function-name-face keep))
+    (cons "\\(\\sw+!?\\) ?(" '(1 font-lock-function-name-face keep))
     ;(list julia-string-regex 0 'font-lock-string-face)
 ))
 
@@ -132,13 +133,14 @@
 
 (defun julia-at-keyword (kw-list)
   "Return the word at point if it matches any keyword in KW-LIST.
-KW-LIST is a list of strings.  The word at point is not considered
-a keyword if used as a field name, X.word, or quoted, :word."
+KW-LIST is a list of strings.  The word at point is not
+considered a keyword if used as a field name, X.word, or
+quoted, :word, or it is part of Julia's comprehension syntax."
   (and (or (= (point) 1)
 	   (and (not (equal (char-before (point)) ?.))
 		(not (equal (char-before (point)) ?:))))
        (not (ess-inside-string-or-comment-p (point)))
-       (not (ess-inside-brackets-p (point)))
+       (not (ess-inside-brackets-p (point) t))
        (member (current-word) kw-list)))
 
 (defun julia-last-open-block-pos (min)
@@ -193,8 +195,7 @@ Do not move back beyond MIN."
                ;; block
                (or (julia-last-open-block-pos (point-min))
                    (point-min)))
-             (progn (beginning-of-line)
-                    (point))))
+             (point-at-bol)))
          (pos (cadr p)))
     (if (or (= 0 (car p)) (null pos))
         nil

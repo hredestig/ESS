@@ -23,10 +23,9 @@
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 ;;
-;; You should have received a copy of the GNU General Public License
-;; along with this program; if not, write to the Free Software
-;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-;;
+;; A copy of the GNU General Public License is available at
+;; http://www.r-project.org/Licenses/
+
 ;; See bottom of this file for information on language-dependent
 ;; highlighting, and recent changes.
 ;;
@@ -1076,7 +1075,7 @@ switch narrowing on."
   "If in a documentation chunk, goto to the Nth documentation
 chunk from point, else goto to the Nth code chunk from point."
   (interactive "p")
-  (dbg (current-buffer))
+  ;; (dbg (current-buffer))
   (if (ess-noweb-in-code-chunk)
       (ess-noweb-next-code-chunk n)
     (ess-noweb-next-doc-chunk n)))

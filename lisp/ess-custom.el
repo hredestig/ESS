@@ -526,6 +526,13 @@ buffer or end chunks etc.
   :group 'ess-S
   :type 'string)
 
+(defcustom ess-smart-S-assign-operators 
+  (list " <- " "_" " < " " <= " " <<- ")
+  "List operators to cycle through when hitting the
+`ess-smart-S-assign-key'."
+  :group 'ess-S
+  :type 'string)
+
 (defcustom ess-smart-S-assign-key "_"
   "Key used by `ess-smart-S-assign'. By default bound to
 underscore, but can be set to any key. If this key is customized,

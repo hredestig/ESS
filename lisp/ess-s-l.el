@@ -683,6 +683,11 @@ toggle between the new and the previous assignment."
         (if (not (and force current-is-S-assign))
             (setq ess-S-assign-key-last current-action))))))
 
+(defun ess-smart-S-assign-query ()
+  "query for a the `ess-smart-S-assign-key' return the typed character"
+  (read-char-exclusive
+   (concat "hit " ess-smart-S-assign-key " to cycle operators")))
+        
 (defvar polymode-mode)
 (defun ess-smart-S-assign ()
   "Smart \\[ess-smart-S-assign] key: insert `ess-S-assign', unless in string/comment.
@@ -691,7 +696,6 @@ operator is removed and replaced by the underscore.  `ess-S-assign',
 typically \" <- \", can be customized.  In ESS modes other than R/S,
 the  underscore is always inserted. "
   (interactive)
-  ;;(insert (if (ess-inside-string-or-comment-p (point)) "_" ess-S-assign))
   (save-restriction
     (ignore-errors
       (when (and (eq major-mode 'inferior-ess-mode)
@@ -703,37 +707,27 @@ the  underscore is always inserted. "
       (and (fboundp 'pm/narrow-to-span)
            polymode-mode
            (pm/narrow-to-span)))
-    (if (or
-         (ess-inside-string-or-comment-p (point))
-         (not (equal ess-language "S")))
-        (insert ess-smart-S-assign-key)
-      ;; else:
-      (ess-insert-S-assign))))
+      (if (or
+           (ess-inside-string-or-comment-p (point))
+           (not (equal ess-language "S")))
+          (insert ess-smart-S-assign-key)
+        (let ((completions ess-smart-S-assign-operators))
+          (delete-horizontal-space)
+          (setq point-without-space (point))
+          (insert (car completions))
+          (setq completions (cdr completions))
+          (setq new-char (ess-smart-S-assign-query))
+          (while (string= (byte-to-string new-char) ess-smart-S-assign-key)
+            (if (not completions)
+                (setq completions ess-smart-S-assign-operators))
+            (delete-region point-without-space (point))
+            (insert (car completions))
+            (setq completions (cdr completions))
+            (setq new-char (ess-smart-S-assign-query)))
+          (if new-char
+              (insert new-char))
+          ))))
 (defalias 'ess-smart-underscore 'ess-smart-S-assign)
-
-(defun ess-insert-S-assign ()
-  "Insert the assignment operator `ess-S-assign', unless it is already there.
-In that case, the it is removed and replaced by
-  `ess-smart-S-assign-key', \\[ess-smart-S-assign-key].
-  `ess-S-assign', typically \" <- \", can be customized."
-  (interactive)
-  ;; one keypress produces ess-S-assign; a second keypress will delete
-  ;; ess-S-assign and instead insert _
-  ;; Rather than trying to count a second _ keypress, just check whether
-  ;; the current point is preceded by ess-S-assign.
-  (let ((assign-len (length ess-S-assign)))
-    (if (and
-         (>= (point) (+ assign-len (point-min))) ;check that we can move back
-         (save-excursion
-           (backward-char assign-len)
-           (looking-at ess-S-assign)))
-        ;; If we are currently looking at ess-S-assign, replace it with _
-        (progn
-          (delete-char (- assign-len))
-          (insert ess-smart-S-assign-key))
-      (if (string= ess-smart-S-assign-key "_")
-          (delete-horizontal-space))
-      (insert ess-S-assign))))
 
 (defun ess-toggle-S-assign (force)
   "Set the `ess-smart-S-assign-key' (by default \"_\"
